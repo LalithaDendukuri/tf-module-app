@@ -53,7 +53,6 @@ resource "aws_launch_template" "main" {
 resource "aws_autoscaling_group" "main" {
   name = "${local.name_prefix}-asg"
   vpc_zone_identifier =var.subnet_ids
-  availability_zones = ["us-east-1a"]
   desired_capacity   = var.desired_capacity
   max_size           = var.max_size
   min_size           = var.min_size
