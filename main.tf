@@ -69,10 +69,10 @@ resource "aws_autoscaling_group" "main" {
 }
 resource "aws_route53_record" "main" {
   zone_id = var.zone_id
-  name    = var.component == "frontend" ? var.env : "${var.component}-${var.env}"
+  name    = var.component == "front-end" ? var.env : "${var.component}-${var.env}"
   type    = "CNAME"
   ttl     = 30
-  records = [var.alb_name]
+  records = [var.component == "front-end" ? var.public_alb_name : var.private_alb_name]
 }
 
 resource "aws_lb_target_group" "main" {
@@ -81,8 +81,18 @@ resource "aws_lb_target_group" "main" {
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 }
+
+resource "aws_lb_target_group" "public" {
+  count  = var.component == "front-end" ? 1 : 0
+  name     = "${local.name_prefix}-public"
+  port     = var.port
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+
+}
+
 resource "aws_lb_listener_rule" "main" {
-  listener_arn = var.listener
+  listener_arn = var.private_listener
   priority     = var.lb_priority
 
   action {
@@ -92,7 +102,8 @@ resource "aws_lb_listener_rule" "main" {
 
   condition {
     path_pattern {
-      values = ["${var.component}-${var.env}.dljrobo.online"]
+      //values = ["${var.component}-${var.env}.dljrobo.online"]
+      values = [ var.component == "front-end" ? "${var.env}.dljrobo.online"  :"${var.component}-${var.env}.dljrobo.online"]
     }
   }
 
