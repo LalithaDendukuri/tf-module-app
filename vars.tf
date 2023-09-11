@@ -1,0 +1,16 @@
+variable "env" {}
+variable "tags" {}
+variable "vpc_id" {}
+variable "port" {}
+variable "sg_ingress_cidr" {}
+variable "ssh_ingress_cidr" {}
+variable "instance_type" {}
+variable "component" {}
+variable "subnet_ids" {}
+variable "max_size" {}
+variable "min_size"  {}
+variable "desired_capacity" {}
+variable "zone_id" {}
+variable "alb_name" {}
+variable "listener" {}
+variable "lb_priority" {}
