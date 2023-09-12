@@ -87,10 +87,18 @@ resource "aws_lb_target_group" "public" {
   name     = "${local.name_prefix}-public"
   port     = var.port
   protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  target_type = "ip"
+  vpc_id   = var.default_vpc_id
 
 }
-
+resource "aws_lb_target_group_attachment" "public" {
+  count = var.component == "frontend" ? length(tolist(data.dns_a_record_set.private_alb.addrs)) : 0
+  #count             = var.component == "frontend" ? length(var.subnet_ids) : 0
+  target_group_arn  = aws_lb_target_group.public[0].arn
+  target_id         = element(tolist(data.dns_a_record_set.private_alb.addrs), count.index)
+  port              = 80
+  availability_zone = "all"
+}
 resource "aws_lb_listener_rule" "main" {
   listener_arn = var.private_listener
   priority     = var.lb_priority
@@ -101,7 +109,25 @@ resource "aws_lb_listener_rule" "main" {
   }
 
   condition {
-    path_pattern {
+    host_header  {
+      //values = ["${var.component}-${var.env}.dljrobo.online"]
+      values = [ var.component == "front-end" ? "${var.env}.dljrobo.online"  :"${var.component}-${var.env}.dljrobo.online"]
+    }
+  }
+
+}
+resource "aws_lb_listener_rule" "public" {
+  count = var.component == "frontend" ? 1 : 0
+  listener_arn = var.public_listener
+  priority     = var.lb_priority
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.public[0].arn
+  }
+
+  condition {
+    host_header {
       //values = ["${var.component}-${var.env}.dljrobo.online"]
       values = [ var.component == "front-end" ? "${var.env}.dljrobo.online"  :"${var.component}-${var.env}.dljrobo.online"]
     }
