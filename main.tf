@@ -38,6 +38,7 @@ resource "aws_launch_template" "main" {
   user_data = base64encode(templatefile("${path.module}/userdata.sh",
     {
       component=var.component
+      env       = var.env
     }))
   tag_specifications {
     resource_type = "instance"
@@ -92,8 +93,8 @@ resource "aws_lb_target_group" "public" {
 
 }
 resource "aws_lb_target_group_attachment" "public" {
-  count = var.component == "frontend" ? length(tolist(data.dns_a_record_set.private_alb.addrs)) : 0
-  #count             = var.component == "frontend" ? length(var.subnet_ids) : 0
+  count = var.component == "front-end" ? length(tolist(data.dns_a_record_set.private_alb.addrs)) : 0
+  #count             = var.component == "front-end" ? length(var.subnet_ids) : 0
   target_group_arn  = aws_lb_target_group.public[0].arn
   target_id         = element(tolist(data.dns_a_record_set.private_alb.addrs), count.index)
   port              = 80
@@ -117,7 +118,7 @@ resource "aws_lb_listener_rule" "main" {
 
 }
 resource "aws_lb_listener_rule" "public" {
-  count = var.component == "frontend" ? 1 : 0
+  count = var.component == "front-end" ? 1 : 0
   listener_arn = var.public_listener
   priority     = var.lb_priority
 
