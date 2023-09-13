@@ -110,6 +110,9 @@ resource "aws_lb_target_group" "public" {
   vpc_id   = var.default_vpc_id
 
 }
+output "dns" {
+  value = data.dns_a_record_set.private_alb.addrs
+}
 resource "aws_lb_target_group_attachment" "public" {
   count = var.component == "frontend" ? length(tolist(data.dns_a_record_set.private_alb.addrs)) : 0
   #count             = var.component == "frontend" ? length(var.subnet_ids) : 0
