@@ -191,8 +191,7 @@ resource "aws_lb_listener_rule" "public" {
 
   condition {
     host_header {
-      //values = ["${var.component}-${var.env}.dljrobo.online"]
-      values = [ "${var.env}.dljrobo.online" ]
+       values = [ "${var.env}.dljrobo.online" ]
     }
   }
 
