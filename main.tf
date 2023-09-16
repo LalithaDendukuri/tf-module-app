@@ -95,7 +95,7 @@ resource "aws_launch_template" "main" {
 
   iam_instance_profile {
 
-    name = "${local.name_prefix}-asg"
+    name = "${local.name_prefix}-role"
   }
   user_data = base64encode(templatefile("${path.module}/userdata.sh",
     {
