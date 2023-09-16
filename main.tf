@@ -93,6 +93,10 @@ resource "aws_launch_template" "main" {
   instance_type = var.instance_type
   vpc_security_group_ids =[aws_security_group.main.id]
 
+  iam_instance_profile {
+
+    name = "${local.name_prefix}-asg"
+  }
   user_data = base64encode(templatefile("${path.module}/userdata.sh",
     {
       component=var.component
@@ -103,10 +107,6 @@ resource "aws_launch_template" "main" {
     tags = merge(local.tags, { Name = "${local.name_prefix}-ec2" })
 
   }
-  /*iam_instance_profile {.
-
-    name = "test"
-  }*/
 }
 
 resource "aws_autoscaling_group" "main" {
