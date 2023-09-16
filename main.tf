@@ -28,6 +28,64 @@ resource "aws_security_group" "main" {
     ipv6_cidr_blocks = ["::/0"]
   }
 }
+resource "aws_iam_policy" "main" {
+  name        = "${local.name_prefix}-policy"
+  path        = "/"
+  description = "${local.name_prefix}-policy"
+
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "VisualEditor0",
+        "Effect": "Allow",
+        "Action": [
+          "ssm:GetParameterHistory",
+          "ssm:GetParametersByPath",
+          "ssm:GetParameters",
+          "ssm:GetParameter"
+        ],
+        "Resource": local.policy_resources
+      },
+      {
+        "Sid": "VisualEditor1",
+        "Effect": "Allow",
+        "Action": "ssm:DescribeParameters",
+        "Resource": "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "main" {
+  name = "${local.name_prefix}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+
+  tags = merge(local.tags, { Name = "${local.name_prefix}-role" })
+}
+
+resource "aws_iam_role_policy_attachment" "attach" {
+  role       = aws_iam_role.main.name
+  policy_arn = aws_iam_policy.main.arn
+}
+
+resource "aws_iam_instance_profile" "main" {
+  name = "${local.name_prefix}-role"
+  role = aws_iam_role.main.name
+}
 
 resource "aws_launch_template" "main" {
   name   = local.name_prefix
@@ -114,7 +172,7 @@ output "dns" {
   value = data.dns_a_record_set.private_alb.addrs
 }
 resource "aws_lb_target_group_attachment" "public" {
-  count = var.component == "frontend" ? length(tolist(data.dns_a_record_set.private_alb.addrs)) : 0
+  count = var.component == "frontend" ? length(var.subnet_ids) : 0
   #count             = var.component == "frontend" ? length(var.subnet_ids) : 0
   target_group_arn  = aws_lb_target_group.public[0].arn
   target_id         = element(tolist(data.dns_a_record_set.private_alb.addrs), count.index)
