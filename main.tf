@@ -24,7 +24,7 @@ resource "aws_security_group" "main" {
     from_port   = 9100
     to_port     = 9100
     protocol    = "tcp"
-    cidr_blocks = ["172.31.23.180/32"]  //var.monitoring_ingress_cidr
+    cidr_blocks = var.monitoring_ingress_cidr //["172.31.23.180/32"]
   }
 
   egress {
@@ -136,6 +136,7 @@ resource "aws_autoscaling_group" "main" {
   tag {
     key                 = "Monitor"
     value               = "yes"
+    propagate_at_launch = true
   }
 }
 resource "aws_route53_record" "main" {
